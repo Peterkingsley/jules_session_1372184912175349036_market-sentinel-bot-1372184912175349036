@@ -1,2 +1,3 @@
 Learned about Gemini Pro API model naming and rate limits in mock environments.
 Render expects package.json in the root directory by default. If the project is in a subdirectory, either move it to the root or configure the Base Directory in Render. Creating an index.js entry point can also help match default start commands like 'node index.js'.
+Adding a health check server (simple HTTP server) is essential for Render Web Services even if the primary application is a polling-based bot. It ensures the service stays 'healthy' in Render's view.

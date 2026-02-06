@@ -57,12 +57,12 @@ bot.on('text', async (ctx) => {
 });
 
 // 4. Initialize Scheduler
-// Note: In a real scenario, you'd probably want to save the chat ID to a DB when the bot is added to a group.
-// For now, we can use an environment variable or a command to set the broadcast target.
 initScheduler(bot);
 
 bot.launch().then(() => {
     console.log("Market Sentinel Bot is alive and kicking! 🚀");
+}).catch(err => {
+    console.error('Failed to launch bot:', err);
 });
 
 // Enable graceful stop
