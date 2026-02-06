@@ -77,31 +77,58 @@ bot.on('text', async (ctx) => {
 });
 
 // 4. Initialize Scheduler & Monitor
-// Note: In a real scenario, you'd probably want to save the chat ID to a DB when the bot is added to a group.
-// For now, we can use an environment variable or a command to set the broadcast target.
 initScheduler(bot);
 startMonitoring(bot);
 
-// Health Check Server for Render
+// Webhook & Health Check Server for Render
+const PORT = process.env.PORT || 10000;
+const RENDER_EXTERNAL_URL = process.env.RENDER_EXTERNAL_URL;
+
+// Use a subset of the bot token as a secret for the webhook
+const secretToken = process.env.BOT_TOKEN.replace(/:/g, '_');
+const handleWebhook = bot.webhookCallback('/webhook', { secretToken });
+
 const server = http.createServer((req, res) => {
+    if (req.method === 'POST' && req.url === '/webhook') {
+        return handleWebhook(req, res);
+    }
+
+    // Health Check for Render
     res.writeHead(200, { 'Content-Type': 'text/plain' });
     res.end('Market Sentinel Bot is running\n');
 });
 
-const PORT = process.env.PORT || 10000;
 server.listen(PORT, () => {
-    console.log(`Health check server listening on port ${PORT}`);
-});
+    console.log(`Server listening on port ${PORT}`);
 
-bot.launch().then(() => {
-    console.log("Market Sentinel Bot is alive and kicking! 🚀");
+    if (RENDER_EXTERNAL_URL) {
+        console.log(`Configuring webhook for ${RENDER_EXTERNAL_URL}/webhook`);
+        bot.telegram.setWebhook(`${RENDER_EXTERNAL_URL}/webhook`, {
+            secret_token: secretToken
+        })
+            .then(() => console.log('Webhook successfully set'))
+            .catch(err => console.error('Failed to set webhook:', err));
+    } else {
+        bot.launch().then(() => {
+            console.log("Market Sentinel Bot is alive and kicking (polling)! 🚀");
+        }).catch(err => {
+            console.error('Failed to launch bot in polling mode:', err);
+        });
+    }
 });
-
 
 // Enable graceful stop
 const shutdown = (signal) => {
     console.log(`Received ${signal}. Shutting down...`);
-    bot.stop(signal);
+    // Telegraf's bot.stop() can throw if the bot isn't currently polling or running its own server.
+    // In webhook mode with a custom server, we don't strictly need bot.stop().
+    if (!RENDER_EXTERNAL_URL) {
+        try {
+            bot.stop(signal);
+        } catch (err) {
+            console.warn('Bot stop warning:', err.message);
+        }
+    }
     server.close(() => {
         console.log('HTTP server closed.');
         process.exit(0);
