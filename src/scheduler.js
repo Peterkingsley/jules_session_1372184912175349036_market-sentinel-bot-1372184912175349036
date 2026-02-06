@@ -1,5 +1,5 @@
 const cron = require('node-cron');
-const { getPrice, getTopTokens } = require('./crypto');
+const { getPrice, getTopTokens, getGlobalData } = require('./crypto');
 const { rewriteInBrandVoice } = require('./ai');
 
 function initScheduler(bot) {
@@ -8,11 +8,19 @@ function initScheduler(bot) {
         const chatId = process.env.MAIN_CHAT_ID;
         if (!chatId) return;
 
+        const global = await getGlobalData();
         const btc = await getPrice('bitcoin');
         const eth = await getPrice('ethereum');
-        const sol = await getPrice('solana');
         
-        const rawData = `Monday Market Recap:\nBTC: $${btc.price} (${btc.change}%)\nETH: $${eth.price} (${eth.change}%)\nSOL: $${sol.price} (${sol.change}%)\nSummary: The week is starting and we are looking at the majors.`;
+        let rawData = "Monday Market Sentiment Report:\n";
+        if (global) {
+            rawData += `Total Market Cap: $${(global.total_market_cap / 1e12).toFixed(2)}T (${global.market_cap_change_percentage_24h_usd.toFixed(2)}%)\n`;
+            rawData += `BTC Dominance: ${global.market_cap_percentage.btc.toFixed(2)}%\n`;
+        }
+        rawData += `BTC: $${btc?.price} (${btc?.change}%)\n`;
+        rawData += `ETH: $${eth?.price} (${eth?.change}%)\n`;
+        rawData += "Outlook: The week is fresh and the bulls/bears are fighting for territory.";
+
         const flavored = await rewriteInBrandVoice(rawData);
         bot.telegram.sendMessage(chatId, flavored);
     });
@@ -37,10 +45,20 @@ function initScheduler(bot) {
         if (!chatId) return;
 
         const tokens = await getTopTokens('solana');
-        let rawData = "Wednesday Top Solana Tokens:\n";
+        let rawData = "Wednesday Solana Alpha Report:\n";
         tokens.forEach(t => {
             rawData += `- ${t.name} (${t.symbol}): $${t.price} (${t.change}%)\n`;
         });
+        const flavored = await rewriteInBrandVoice(rawData);
+        bot.telegram.sendMessage(chatId, flavored);
+    });
+
+    // Monthly Performance Review: 1st of every month at 10 AM
+    cron.schedule('0 10 1 * *', async () => {
+        const chatId = process.env.MAIN_CHAT_ID;
+        if (!chatId) return;
+
+        const rawData = "Monthly Performance Review: It's the first of the month! Time to look back at the biggest winners and losers. (Note: Real monthly data would require historical API access, currently summarizing 24h as a placeholder for the monthly report structure).";
         const flavored = await rewriteInBrandVoice(rawData);
         bot.telegram.sendMessage(chatId, flavored);
     });
