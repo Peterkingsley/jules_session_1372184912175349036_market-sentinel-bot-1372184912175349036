@@ -23,6 +23,7 @@ setupCommands(bot);
 // 2. New Member Greetings
 bot.on('new_chat_members', async (ctx) => {
     const newMembers = ctx.message.new_chat_members;
+    const joinedViaInvite = ctx.message.via_invite_link; // true if joined via invite link (if supported by Telegram/Telegraf)
 
     // Fetch some market sentiment for the greeting
     const btc = await getPrice('bitcoin');
@@ -31,10 +32,18 @@ bot.on('new_chat_members', async (ctx) => {
     for (const member of newMembers) {
         if (member.is_bot) continue;
         const name = member.first_name || 'fren';
-        const welcomePrompt = `Generate a unique, energetic, and professional greeting for a new member named "${name}" who just joined our crypto community.
-        Current Market Sentiment: ${marketSnippet}
-        Mention that they are in the right place for market intelligence.
-        Keep it persistent and welcoming.`;
+        let welcomePrompt;
+        if (joinedViaInvite) {
+            welcomePrompt = `Generate a unique, energetic, and professional greeting for a new member named "${name}" who just joined our crypto community via invite link.
+            Current Market Sentiment: ${marketSnippet}
+            Mention that they are in the right place for market intelligence.
+            Make them feel extra welcome for joining via invite link.`;
+        } else {
+            welcomePrompt = `Generate a unique, energetic, and professional greeting for a new member named "${name}" who just joined our crypto community.
+            Current Market Sentiment: ${marketSnippet}
+            Mention that they are in the right place for market intelligence.
+            Keep it persistent and welcoming.`;
+        }
 
         const uniqueGreeting = await askAI(welcomePrompt);
         ctx.reply(uniqueGreeting, { reply_to_message_id: ctx.message.message_id });
