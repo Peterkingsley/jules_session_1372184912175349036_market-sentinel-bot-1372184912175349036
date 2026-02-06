@@ -1,3 +1,4 @@
+const http = require('http');
 require('dotenv').config();
 const { Telegraf } = require('telegraf');
 const { setupCommands } = require('./commands');
@@ -61,10 +62,31 @@ bot.on('text', async (ctx) => {
 // For now, we can use an environment variable or a command to set the broadcast target.
 initScheduler(bot);
 
+// Health Check Server for Render
+const server = http.createServer((req, res) => {
+    res.writeHead(200, { 'Content-Type': 'text/plain' });
+    res.end('Market Sentinel Bot is running\n');
+});
+
+const PORT = process.env.PORT || 10000;
+server.listen(PORT, () => {
+    console.log(`Health check server listening on port ${PORT}`);
+});
+
 bot.launch().then(() => {
     console.log("Market Sentinel Bot is alive and kicking! 🚀");
 });
 
+
 // Enable graceful stop
-process.once('SIGINT', () => bot.stop('SIGINT'));
-process.once('SIGTERM', () => bot.stop('SIGTERM'));
+const shutdown = (signal) => {
+    console.log(`Received ${signal}. Shutting down...`);
+    bot.stop(signal);
+    server.close(() => {
+        console.log('HTTP server closed.');
+        process.exit(0);
+    });
+};
+
+process.once('SIGINT', () => shutdown('SIGINT'));
+process.once('SIGTERM', () => shutdown('SIGTERM'));
