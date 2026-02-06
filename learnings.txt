@@ -1,0 +1,1 @@
+Learned about Gemini Pro API model naming and rate limits in mock environments.
