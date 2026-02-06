@@ -28,6 +28,15 @@ const setupCommands = (bot) => {
         // In a real app, you'd save this to a database or .env file
         process.env.MAIN_CHAT_ID = chatId;
     });
+
+    bot.command('testai', async (ctx) => {
+        const text = ctx.message.text.split(' ').slice(1).join(' ');
+        if (!text) return ctx.reply("Usage: /testai <message to test>");
+
+        await ctx.sendChatAction('typing');
+        const response = await rewriteInBrandVoice(text);
+        ctx.reply(`[Test Mode Output]:\n\n${response}`);
+    });
 };
 
 module.exports = { setupCommands };
