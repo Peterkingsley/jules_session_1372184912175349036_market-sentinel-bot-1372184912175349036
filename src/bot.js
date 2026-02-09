@@ -42,6 +42,14 @@ async function getOptimizedMarketSnippet() {
 // 1. Setup Commands
 setupCommands(bot);
 
+const vibes = [
+    "hyper-energetic trader",
+    "chill floor manager",
+    "mysterious alpha hunter",
+    "straight-to-the-point analyst",
+    "slightly chaotic moon-boy"
+];
+
 // 2. Robust Group Join / New Member Handler
 bot.on('new_chat_members', async (ctx) => {
     try {
@@ -108,11 +116,14 @@ bot.on('new_chat_members', async (ctx) => {
             contextData = await getOptimizedMarketSnippet();
         }
 
+        const randomVibe = vibes[Math.floor(Math.random() * vibes.length)];
         const prompt = `
+            [Vibe: ${randomVibe}]
             Task: Greet these new members: ${humanNames}.
             Context: They just joined the crypto community. ${contextData}
             Style: High energy, trader slang, welcoming but professional.
             Requirement: One single concise message. Ensure you mention each member by their provided handle or name to tag them.
+            Instruction: Do NOT use standard greetings. Be creative with how you present this data. Vary the structure: sometimes lead with the market data, sometimes with a question, sometimes with the welcome.
         `;
 
         const response = await askAI(prompt);
