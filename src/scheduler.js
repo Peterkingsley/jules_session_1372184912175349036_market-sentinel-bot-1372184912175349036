@@ -1,5 +1,5 @@
 const cron = require('node-cron');
-const { getPrice, getTopTokens, getGlobalData } = require('./crypto');
+const { getPrice, getTopTokens, getGlobalData, getRandomToken } = require('./crypto');
 const { rewriteInBrandVoice } = require('./ai');
 
 function initScheduler(bot) {
@@ -61,6 +61,24 @@ function initScheduler(bot) {
         const rawData = "Monthly Performance Review: It's the first of the month! Time to look back at the biggest winners and losers. (Note: Real monthly data would require historical API access, currently summarizing 24h as a placeholder for the monthly report structure).";
         const flavored = await rewriteInBrandVoice(rawData);
         bot.telegram.sendMessage(chatId, flavored);
+    });
+
+    // NEW: Every day at 3 PM, pick a random token from the millions available
+    cron.schedule('0 15 * * *', async () => {
+        const chatId = process.env.MAIN_CHAT_ID;
+        if (!chatId) return;
+
+        const token = await getRandomToken();
+        if (token) {
+            const rawData = `RANDOM TOKEN SPOTLIGHT:
+            ${token.name} (${token.symbol})
+            Price: $${token.price}
+            24h Change: ${token.change}%
+            Quick Info: ${token.description.substring(0, 200)}...`;
+
+            const flavored = await rewriteInBrandVoice(rawData);
+            bot.telegram.sendMessage(chatId, flavored);
+        }
     });
 
     console.log('Scheduler initialized. Broadcasts will be sent if MAIN_CHAT_ID is set.');
