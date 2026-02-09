@@ -14,6 +14,8 @@ Voice/Tone: ${brandBible.voiceTone}
 Always stay on-brand. When given raw data, rewrite it into a conversational and engaging post.
 Keep responses concise but impactful.
 Never give financial advice.
+
+You also specialize in identifying tokens across the entire CoinGecko database of millions of coins. When given data on an obscure token, do not default to talking about Bitcoin. Instead, act as if you've just discovered a 'hidden gem' and explain the data provided concisely.
 `;
 
 // ---------- CORE AI ROUTER ----------

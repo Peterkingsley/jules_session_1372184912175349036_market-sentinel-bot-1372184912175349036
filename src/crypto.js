@@ -125,4 +125,30 @@ async function getRandomMarketData() {
     }
 }
 
-module.exports = { getPrice, getTopTokens, getMarketMovers, getGlobalData, getTrendingCoins, getRandomMarketData };
+async function getRandomToken() {
+    try {
+        // 1. Get the list of ALL millions/thousands of tokens
+        const res = await axios.get('https://api.coingecko.com/api/v3/coins/list');
+        const allTokens = res.data;
+
+        // 2. Select one at random from the entire array
+        const randomToken = allTokens[Math.floor(Math.random() * allTokens.length)];
+
+        // 3. Fetch detailed data for that specific random ID
+        const detailRes = await axios.get(`https://api.coingecko.com/api/v3/coins/${randomToken.id}`);
+        const data = detailRes.data;
+
+        return {
+            name: data.name,
+            symbol: data.symbol.toUpperCase(),
+            price: data.market_data.current_price.usd,
+            change: data.market_data.price_change_percentage_24h?.toFixed(2) || '0.00',
+            description: data.description.en || "No description available."
+        };
+    } catch (error) {
+        console.error('Error fetching random token:', error.message);
+        return null;
+    }
+}
+
+module.exports = { getPrice, getTopTokens, getMarketMovers, getGlobalData, getTrendingCoins, getRandomMarketData, getRandomToken };
