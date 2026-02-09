@@ -14,34 +14,44 @@ if (!process.env.BOT_TOKEN) {
 
 const bot = new Telegraf(process.env.BOT_TOKEN);
 
-// Context/Session storage (In-memory for now)
-const sessions = new Map();
+// To prevent 429 errors, we'll cache market snippets for 5 minutes
+let cachedMarketSnippet = null;
+let lastCacheTime = 0;
+
+async function getOptimizedMarketSnippet() {
+    const now = Date.now();
+    if (cachedMarketSnippet && (now - lastCacheTime < 300000)) {
+        return cachedMarketSnippet;
+    }
+    try {
+        const btc = await getPrice('bitcoin');
+        cachedMarketSnippet = btc ? `BTC is at $${btc.price} (${btc.change}% 24h).` : 'The market is buzzing.';
+        lastCacheTime = now;
+        return cachedMarketSnippet;
+    } catch (e) {
+        return cachedMarketSnippet || 'The charts are looking spicy today.';
+    }
+}
 
 // 1. Setup Commands
 setupCommands(bot);
 
-// 2. Optimized New Member / Group Join Handler
+// 2. Robust Group Join / New Member Handler
 bot.on('new_chat_members', async (ctx) => {
     try {
         const newMembers = ctx.message.new_chat_members;
         const botInfo = await ctx.telegram.getMe();
         
-        // Check if the bot itself was added to the group
+        // Check if the bot itself joined
         const isBotAdded = newMembers.some(member => member.id === botInfo.id);
 
         if (isBotAdded) {
-            // Case A: The bot just joined a new group
-            const welcomeBack = await rewriteInBrandVoice(
-                `I have just arrived in the group "${ctx.chat.title}". I am ready to monitor the charts and keep the community updated with spicy market intel.`
-            );
-            return ctx.reply(welcomeBack);
+            const welcomeText = `Sentinel has arrived in ${ctx.chat.title}! 🚀 I'm here to monitor the charts and feed you the spiciest alpha. Use /p <coin> to check prices.`;
+            const flavored = await rewriteInBrandVoice(welcomeText);
+            return ctx.reply(flavored);
         }
 
-        // Case B: Users joined. We fetch market data once to save API calls
-        const btc = await getPrice('bitcoin');
-        const marketSnippet = btc ? `BTC is currently at $${btc.price} (${btc.change}% 24h).` : 'The market is looking interesting today.';
-
-        // To avoid spamming and AI rate limits, we greet multiple people in one message if they join together
+        // Filter out bots and get names
         const humanNames = newMembers
             .filter(m => !m.is_bot)
             .map(m => m.first_name)
@@ -49,27 +59,32 @@ bot.on('new_chat_members', async (ctx) => {
 
         if (!humanNames) return;
 
-        const welcomePrompt = `
-            Context: Multiple new members joined: ${humanNames}. 
-            Current Market: ${marketSnippet}.
-            Task: Write one unified, high-energy welcome message for the group. 
-            Mention the names and give a quick "Sentinel" style market vibe check.
+        // Get market data (Cached to avoid 429)
+        const marketInfo = await getOptimizedMarketSnippet();
+
+        const prompt = `
+            Task: Greet these new members: ${humanNames}.
+            Context: They just joined the crypto community. ${marketInfo}
+            Style: High energy, trader slang, welcoming but professional.
+            Requirement: One single concise message.
         `;
 
-        const response = await askAI(welcomePrompt);
+        const response = await askAI(prompt);
         await ctx.reply(response);
 
     } catch (error) {
-        console.error('Error in new_chat_members handler:', error);
+        console.error('Greeting Error:', error.message);
+        // Fallback if AI or API completely fails
+        ctx.reply("Welcome to the group! Get ready for some market alpha. 🚀");
     }
 });
 
-// 3. Initialize background tasks
+// 3. Background Tasks
 initScheduler(bot);
 startMonitoring(bot);
 
-// --- SERVER SETUP FOR RENDER / WEBHOOKS ---
-const PORT = process.env.PORT || 3000;
+// --- SERVER SETUP ---
+const PORT = process.env.PORT || 10000;
 const RENDER_EXTERNAL_URL = process.env.RENDER_EXTERNAL_URL;
 const secretToken = process.env.WEBHOOK_SECRET || 'market_sentinel_secret';
 
@@ -82,35 +97,21 @@ const server = http.createServer((req, res) => {
                 const update = JSON.parse(body);
                 bot.handleUpdate(update, res);
             } catch (err) {
-                console.error('Webhook error:', err);
                 res.statusCode = 500;
                 res.end();
             }
         });
         return;
     }
-    res.writeHead(200, { 'Content-Type': 'text/plain' });
-    res.end('Market Sentinel Bot is running\n');
+    res.writeHead(200);
+    res.end('Bot Active');
 });
 
 server.listen(PORT, () => {
     console.log(`Server listening on port ${PORT}`);
-
     if (RENDER_EXTERNAL_URL) {
-        bot.telegram.setWebhook(`${RENDER_EXTERNAL_URL}/webhook`, {
-            secret_token: secretToken
-        })
-        .then(() => console.log('Webhook successfully set'))
-        .catch(err => console.error('Failed to set webhook:', err));
+        bot.telegram.setWebhook(`${RENDER_EXTERNAL_URL}/webhook`, { secret_token: secretToken });
     } else {
-        bot.launch().then(() => {
-            console.log("Market Sentinel Bot is alive and kicking (polling)! 🚀");
-        }).catch(err => {
-            console.error('Failed to launch bot in polling mode:', err);
-        });
+        bot.launch();
     }
 });
-
-// Enable graceful stop
-process.once('SIGINT', () => bot.stop('SIGINT'));
-process.once('SIGTERM', () => bot.stop('SIGTERM'));
