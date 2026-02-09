@@ -14,12 +14,17 @@ if (!process.env.BOT_TOKEN) {
 
 const bot = new Telegraf(process.env.BOT_TOKEN);
 
-// To prevent 429 errors, we'll cache market snippets for 5 minutes
+// To prevent 429 errors and speed up greetings, we cache market snippets
 let cachedMarketSnippet = null;
 let lastCacheTime = 0;
 
+/**
+ * Fetches BTC price but caches it for 5 minutes to avoid hitting
+ * Gemini or CoinGecko rate limits during high-traffic greetings.
+ */
 async function getOptimizedMarketSnippet() {
     const now = Date.now();
+    // Cache for 5 minutes (300,000ms)
     if (cachedMarketSnippet && (now - lastCacheTime < 300000)) {
         return cachedMarketSnippet;
     }
@@ -47,7 +52,13 @@ bot.on('new_chat_members', async (ctx) => {
 
         if (isBotAdded) {
             const welcomeText = `Sentinel has arrived in ${ctx.chat.title}! 🚀 I'm here to monitor the charts and feed you the spiciest alpha. Use /p <coin> to check prices.`;
-            const flavored = await rewriteInBrandVoice(welcomeText);
+            // Using a try-catch specifically for the brand rewrite to ensure the welcome always sends
+            let flavored;
+            try {
+                flavored = await rewriteInBrandVoice(welcomeText);
+            } catch (aiErr) {
+                flavored = welcomeText;
+            }
             return ctx.reply(flavored);
         }
 
@@ -58,6 +69,9 @@ bot.on('new_chat_members', async (ctx) => {
             .join(', ');
 
         if (!humanNames) return;
+
+        // Show "typing" status so the community knows the bot is working
+        await ctx.sendChatAction('typing');
 
         // Get market data (Cached to avoid 429)
         const marketInfo = await getOptimizedMarketSnippet();
@@ -74,8 +88,8 @@ bot.on('new_chat_members', async (ctx) => {
 
     } catch (error) {
         console.error('Greeting Error:', error.message);
-        // Fallback if AI or API completely fails
-        ctx.reply("Welcome to the group! Get ready for some market alpha. 🚀");
+        // Fallback message if AI or Telegram API fails
+        ctx.reply("Welcome to the group! Get ready for some market alpha. 🚀").catch(() => {});
     }
 });
 
@@ -97,6 +111,7 @@ const server = http.createServer((req, res) => {
                 const update = JSON.parse(body);
                 bot.handleUpdate(update, res);
             } catch (err) {
+                console.error('Webhook processing error:', err);
                 res.statusCode = 500;
                 res.end();
             }
@@ -110,8 +125,11 @@ const server = http.createServer((req, res) => {
 server.listen(PORT, () => {
     console.log(`Server listening on port ${PORT}`);
     if (RENDER_EXTERNAL_URL) {
-        bot.telegram.setWebhook(`${RENDER_EXTERNAL_URL}/webhook`, { secret_token: secretToken });
+        bot.telegram.setWebhook(`${RENDER_EXTERNAL_URL}/webhook`, { 
+            secret_token: secretToken,
+            drop_pending_updates: true 
+        }).then(() => console.log('Webhook configured.'));
     } else {
-        bot.launch();
+        bot.launch().then(() => console.log('Bot started via polling.'));
     }
 });
