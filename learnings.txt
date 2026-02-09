@@ -1,2 +1,3 @@
 Learned about Gemini Pro API model naming and rate limits in mock environments.
 Render expects package.json in the root directory by default. If the project is in a subdirectory, either move it to the root or configure the Base Directory in Render. Creating an index.js entry point can also help match default start commands like 'node index.js'.
+To tag users in a Telegram bot using Telegraf and AI, it is effective to provide the AI with the @username if available, or the first_name otherwise, and explicitly instruct the AI to include these handles in the response. Using parse_mode: 'Markdown' in ctx.reply allows for better formatting, although @username tags work even in plain text.
