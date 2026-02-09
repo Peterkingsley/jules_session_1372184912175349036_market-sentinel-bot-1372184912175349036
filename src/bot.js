@@ -65,7 +65,7 @@ bot.on('new_chat_members', async (ctx) => {
         // Filter out bots and get names
         const humanNames = newMembers
             .filter(m => !m.is_bot)
-            .map(m => m.first_name)
+            .map(m => m.username ? `@${m.username}` : m.first_name)
             .join(', ');
 
         if (!humanNames) return;
@@ -80,11 +80,11 @@ bot.on('new_chat_members', async (ctx) => {
             Task: Greet these new members: ${humanNames}.
             Context: They just joined the crypto community. ${marketInfo}
             Style: High energy, trader slang, welcoming but professional.
-            Requirement: One single concise message.
+            Requirement: One single concise message. Ensure you mention each member by their provided handle or name to tag them.
         `;
 
         const response = await askAI(prompt);
-        await ctx.reply(response);
+        await ctx.reply(response, { parse_mode: 'Markdown' });
 
     } catch (error) {
         console.error('Greeting Error:', error.message);
