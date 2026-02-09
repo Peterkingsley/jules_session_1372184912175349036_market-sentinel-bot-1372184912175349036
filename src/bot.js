@@ -4,8 +4,9 @@ const { Telegraf } = require('telegraf');
 const { setupCommands } = require('./commands');
 const { askAI, rewriteInBrandVoice } = require('./ai');
 const { initScheduler } = require('./scheduler');
-const { getPrice } = require('./crypto');
+const { getPrice, getTrendingCoins, getRandomMarketData } = require('./crypto');
 const { startMonitoring } = require('./monitor');
+const { getLatestNews } = require('./news');
 
 if (!process.env.BOT_TOKEN) {
     console.error('BOT_TOKEN is missing in .env file');
@@ -73,12 +74,43 @@ bot.on('new_chat_members', async (ctx) => {
         // Show "typing" status so the community knows the bot is working
         await ctx.sendChatAction('typing');
 
-        // Get market data (Cached to avoid 429)
-        const marketInfo = await getOptimizedMarketSnippet();
+        // Selection is fully random across the three sources
+        const sources = ['price', 'news', 'trending'];
+        const selectedSource = sources[Math.floor(Math.random() * sources.length)];
+        let contextData = '';
+
+        try {
+            if (selectedSource === 'price') {
+                const coin = await getRandomMarketData();
+                if (coin) {
+                    contextData = `Market Update: ${coin.name} (${coin.symbol}) is currently at $${coin.price} with a 24h change of ${coin.change}%.`;
+                } else {
+                    contextData = await getOptimizedMarketSnippet();
+                }
+            } else if (selectedSource === 'news') {
+                const news = await getLatestNews();
+                if (news) {
+                    contextData = `Latest News: "${news.title}" (Source: ${news.domain}).`;
+                } else {
+                    contextData = await getOptimizedMarketSnippet();
+                }
+            } else if (selectedSource === 'trending') {
+                const trending = await getTrendingCoins();
+                if (trending && trending.length > 0) {
+                    const randomTrending = trending[Math.floor(Math.random() * trending.length)];
+                    contextData = `Trending Alert: ${randomTrending.name} (${randomTrending.symbol}) is currently trending on CoinGecko at rank #${randomTrending.market_cap_rank}.`;
+                } else {
+                    contextData = await getOptimizedMarketSnippet();
+                }
+            }
+        } catch (fetchErr) {
+            console.error('Data Fetch Error in Greeting:', fetchErr.message);
+            contextData = await getOptimizedMarketSnippet();
+        }
 
         const prompt = `
             Task: Greet these new members: ${humanNames}.
-            Context: They just joined the crypto community. ${marketInfo}
+            Context: They just joined the crypto community. ${contextData}
             Style: High energy, trader slang, welcoming but professional.
             Requirement: One single concise message. Ensure you mention each member by their provided handle or name to tag them.
         `;

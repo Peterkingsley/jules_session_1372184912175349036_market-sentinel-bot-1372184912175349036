@@ -84,4 +84,45 @@ async function getGlobalData() {
     }
 }
 
-module.exports = { getPrice, getTopTokens, getMarketMovers, getGlobalData };
+async function getTrendingCoins() {
+    try {
+        const res = await axios.get("https://api.coingecko.com/api/v3/search/trending");
+        return res.data.coins.map(c => ({
+            id: c.item.id,
+            name: c.item.name,
+            symbol: c.item.symbol,
+            market_cap_rank: c.item.market_cap_rank
+        }));
+    } catch (error) {
+        console.error("Error fetching trending coins:", error.message);
+        return [];
+    }
+}
+
+async function getRandomMarketData() {
+    try {
+        const res = await axios.get("https://api.coingecko.com/api/v3/coins/markets", {
+            params: {
+                vs_currency: "usd",
+                order: "market_cap_desc",
+                per_page: 100,
+                page: 1,
+                sparkline: false,
+                price_change_percentage: "24h"
+            }
+        });
+        const randomIndex = Math.floor(Math.random() * res.data.length);
+        const coin = res.data[randomIndex];
+        return {
+            name: coin.name,
+            symbol: coin.symbol.toUpperCase(),
+            price: coin.current_price,
+            change: coin.price_change_percentage_24h ? coin.price_change_percentage_24h.toFixed(2) : "0.00"
+        };
+    } catch (error) {
+        console.error("Error fetching random market data:", error.message);
+        return null;
+    }
+}
+
+module.exports = { getPrice, getTopTokens, getMarketMovers, getGlobalData, getTrendingCoins, getRandomMarketData };
