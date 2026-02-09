@@ -16,59 +16,89 @@ Keep responses concise but impactful.
 Never give financial advice.
 `;
 
+// ---------- CORE AI ROUTER ----------
 async function askAI(prompt, history = []) {
-    // Check for redundancy (e.g., fallback to another provider if Gemini fails)
     try {
         return await askGemini(prompt, history);
     } catch (error) {
-        console.error('Gemini failed, checking for fallback...');
+        console.error(
+            '❌ Gemini error:',
+            error?.response?.data || error?.message || error
+        );
+
+        // Optional OpenAI fallback (only used if key exists)
         if (process.env.OPENAI_API_KEY) {
-            return await askOpenAI(prompt, history);
+            try {
+                return await askOpenAI(prompt, history);
+            } catch (fallbackError) {
+                console.error('❌ OpenAI fallback also failed:', fallbackError?.message || fallbackError);
+            }
         }
+
         return "Sorry, I'm having a bit of a brain fog right now. Let's try again in a moment!";
     }
 }
 
+// ---------- GEMINI IMPLEMENTATION ----------
 async function askGemini(prompt, history = []) {
     const model = genAI.getGenerativeModel({
-        model: "gemini-pro",
+        model: "models/gemini-1.5-flash",
         systemInstruction: SYSTEM_PROMPT
     });
 
-    const chat = model.startChat({
-        history: history,
-    });
+    const chat = model.startChat({ history });
 
     const result = await chat.sendMessage(prompt);
-    const response = await result.response;
-    return response.text();
+    return result.response.text();
 }
 
+// ---------- OPENAI FALLBACK (SAFE MINIMAL) ----------
 async function askOpenAI(prompt, history = []) {
-    // Placeholder for OpenAI implementation
-    // const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
-    // ... logic for OpenAI chat ...
-    console.log('OpenAI fallback triggered (not fully implemented)');
-    return "I'm switching to my backup brain... (OpenAI fallback placeholder)";
+    const OpenAI = require('openai');
+
+    const openai = new OpenAI({
+        apiKey: process.env.OPENAI_API_KEY
+    });
+
+    const messages = [
+        { role: 'system', content: SYSTEM_PROMPT },
+        ...history,
+        { role: 'user', content: prompt }
+    ];
+
+    const completion = await openai.chat.completions.create({
+        model: 'gpt-4o-mini',
+        messages,
+        temperature: 0.7
+    });
+
+    return completion.choices[0].message.content;
 }
 
+// ---------- BRAND VOICE REWRITE ----------
 async function rewriteInBrandVoice(rawData) {
     try {
-        const model = genAI.getGenerativeModel({ 
-            model: "gemini-pro",
+        const model = genAI.getGenerativeModel({
+            model: "models/gemini-1.5-flash",
             systemInstruction: SYSTEM_PROMPT
         });
+
         const prompt = `Rewrite the following raw market data into an engaging, conversational community post:\n\n${rawData}`;
+
         const result = await model.generateContent(prompt);
-        const response = await result.response;
-        return response.text();
+        return result.response.text();
     } catch (error) {
-        console.error('Error rewriting with Gemini AI:', error.message);
+        console.error('❌ Gemini rewrite error:', error?.message || error);
+
         if (process.env.OPENAI_API_KEY) {
-            console.log('Attempting OpenAI rewrite fallback...');
-            // return await rewriteWithOpenAI(rawData);
+            try {
+                return await askOpenAI(`Rewrite this in brand voice:\n\n${rawData}`);
+            } catch (fallbackError) {
+                console.error('❌ OpenAI rewrite fallback failed:', fallbackError?.message || fallbackError);
+            }
         }
-        return rawData; // Fallback to raw data if all AI fails
+
+        return rawData; // final safe fallback
     }
 }
 
