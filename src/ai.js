@@ -42,7 +42,7 @@ async function askAI(prompt, history = []) {
 // ---------- GEMINI IMPLEMENTATION ----------
 async function askGemini(prompt, history = []) {
     const model = genAI.getGenerativeModel({
-        model: "gemini-1.5-flash-latest",
+        model: "gemini-1.5-flash",
         systemInstruction: SYSTEM_PROMPT
     });
 
@@ -79,7 +79,7 @@ async function askOpenAI(prompt, history = []) {
 async function rewriteInBrandVoice(rawData) {
     try {
         const model = genAI.getGenerativeModel({
-            model: "gemini-1.5-flash-latest",
+            model: "gemini-1.5-flash",
             systemInstruction: SYSTEM_PROMPT
         });
 

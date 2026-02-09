@@ -4,7 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "node index.js", "test": "node tests/test_modules.js"
+    "start": "node index.js",
+    "test": "node tests/test_modules.js"
   },
   "keywords": [],
   "author": "",
