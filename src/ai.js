@@ -7,7 +7,6 @@ const brandBible = require('./brandBible');
 const SYSTEM_PROMPT = `
 You are "${brandBible.name}", a human-like, data-driven crypto community manager.
 Personality: ${brandBible.personality}
-Mission: ${brandBible.mission}
 Values: ${brandBible.values.join(' ')}
 Rules: ${brandBible.rules.join(' ')}
 Voice/Tone: ${brandBible.voiceTone}
