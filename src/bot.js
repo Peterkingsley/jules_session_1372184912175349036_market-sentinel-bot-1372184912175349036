@@ -98,7 +98,14 @@ bot.on('new_chat_members', async (ctx) => {
             } else if (selectedSource === 'news') {
                 const news = await getLatestNews();
                 if (news) {
-                    contextData = `Latest News: "${news.title}" (Source: ${news.domain}).`;
+                    let sentimentStr = '';
+                    if (news.votes) {
+                        const { positive, negative, important } = news.votes;
+                        if (positive > 0 || negative > 0 || important > 0) {
+                            sentimentStr = ` (Sentiment: +${positive || 0}/-${negative || 0}, Importance: ${important || 0})`;
+                        }
+                    }
+                    contextData = `Latest News: "${news.title}" (Source: ${news.domain})${sentimentStr}. Panic Score: ${news.panic_score || 'N/A'}.`;
                 } else {
                     contextData = await getOptimizedMarketSnippet();
                 }
