@@ -60,7 +60,7 @@ bot.on('new_chat_members', async (ctx) => {
         const isBotAdded = newMembers.some(member => member.id === botInfo.id);
 
         if (isBotAdded) {
-            const welcomeText = `Sentinel has arrived in ${ctx.chat.title}! 🚀 I'm here to monitor the charts and feed you the spiciest alpha. Use /p <coin> to check prices.`;
+            const welcomeText = `Greetings! Sentinel has arrived in ${ctx.chat.title}! 🚀 I'm here to monitor the charts and feed you the spiciest alpha. Use /p <coin> to check prices.`;
             // Using a try-catch specifically for the brand rewrite to ensure the welcome always sends
             let flavored;
             try {
@@ -123,7 +123,7 @@ bot.on('new_chat_members', async (ctx) => {
             Context: They just joined the crypto community. ${contextData}
             Style: High energy, trader slang, welcoming but professional.
             Requirement: One single concise message. Ensure you mention each member by their provided handle or name to tag them.
-            Instruction: Do NOT use standard greetings. Be creative with how you present this data. Vary the structure: sometimes lead with the market data, sometimes with a question, sometimes with the welcome.
+            Instruction: Always lead with a friendly greeting and welcome the new members. Be creative with how you integrate the market data, but the greeting must come first.
         `;
 
         const response = await askAI(prompt);

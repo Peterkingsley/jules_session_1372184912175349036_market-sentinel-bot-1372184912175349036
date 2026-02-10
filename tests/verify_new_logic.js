@@ -9,13 +9,13 @@ const vibes = [
 function testPromptGeneration(humanNames, contextData) {
     const randomVibe = vibes[Math.floor(Math.random() * vibes.length)];
     const prompt = `
-        [Vibe: ${randomVibe}]
-        Task: Greet these new members: ${humanNames}.
-        Context: They just joined the crypto community. ${contextData}
-        Style: High energy, trader slang, welcoming but professional.
-        Requirement: One single concise message. Ensure you mention each member by their provided handle or name to tag them.
-        Instruction: Do NOT use standard greetings. Be creative with how you present this data. Vary the structure: sometimes lead with the market data, sometimes with a question, sometimes with the welcome.
-    `;
+            [Vibe: ${randomVibe}]
+            Task: Greet these new members: ${humanNames}.
+            Context: They just joined the crypto community. ${contextData}
+            Style: High energy, trader slang, welcoming but professional.
+            Requirement: One single concise message. Ensure you mention each member by their provided handle or name to tag them.
+            Instruction: Always lead with a friendly greeting and welcome the new members. Be creative with how you integrate the market data, but the greeting must come first.
+        `;
     return prompt;
 }
 
@@ -27,10 +27,19 @@ if (vibes.some(v => samplePrompt.includes(v))) {
     console.log("✅ Vibe included in prompt");
 } else {
     console.log("❌ Vibe NOT included in prompt");
+    process.exit(1);
+}
+
+if (samplePrompt.includes("Always lead with a friendly greeting")) {
+    console.log("✅ New instructions included in prompt");
+} else {
+    console.log("❌ New instructions NOT included in prompt");
+    process.exit(1);
 }
 
 if (samplePrompt.includes("Do NOT use standard greetings")) {
-    console.log("✅ Instructions included in prompt");
+    console.log("❌ Old instructions still present in prompt");
+    process.exit(1);
 } else {
-    console.log("❌ Instructions NOT included in prompt");
+    console.log("✅ Old instructions removed from prompt");
 }
