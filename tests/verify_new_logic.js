@@ -1,9 +1,9 @@
 const vibes = [
-    "hyper-energetic trader",
-    "chill floor manager",
-    "mysterious alpha hunter",
-    "straight-to-the-point analyst",
-    "slightly chaotic moon-boy"
+    "patient educator",
+    "objective analyst",
+    "helpful community guide",
+    "clear translator",
+    "knowledgeable mentor"
 ];
 
 function testPromptGeneration(humanNames, contextData) {
@@ -12,9 +12,9 @@ function testPromptGeneration(humanNames, contextData) {
             [Vibe: ${randomVibe}]
             Task: Greet these new members: ${humanNames}.
             Context: They just joined the crypto community. ${contextData}
-            Style: High energy, trader slang, welcoming but professional.
+            Style: Friendly, clear, and educational. Explain the market data simply if it's there.
             Requirement: One single concise message. Ensure you mention each member by their provided handle or name to tag them.
-            Instruction: Always lead with a friendly greeting and welcome the new members. Be creative with how you integrate the market data, but the greeting must come first.
+            Instruction: Always lead with a friendly greeting and welcome the new members. Your goal is to make them feel informed and welcome without using hype or jargon.
         `;
     return prompt;
 }
@@ -37,9 +37,9 @@ if (samplePrompt.includes("Always lead with a friendly greeting")) {
     process.exit(1);
 }
 
-if (samplePrompt.includes("Do NOT use standard greetings")) {
-    console.log("❌ Old instructions still present in prompt");
-    process.exit(1);
+if (samplePrompt.includes("Your goal is to make them feel informed and welcome without using hype or jargon")) {
+    console.log("✅ Educator goal included in prompt");
 } else {
-    console.log("✅ Old instructions removed from prompt");
+    console.log("❌ Educator goal NOT included in prompt");
+    process.exit(1);
 }

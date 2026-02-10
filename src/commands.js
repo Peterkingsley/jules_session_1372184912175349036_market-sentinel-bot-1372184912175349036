@@ -4,7 +4,7 @@ const { rewriteInBrandVoice } = require('./ai');
 
 const setupCommands = (bot) => {
     bot.start((ctx) => {
-        const welcomeMsg = "Welcome to the Market Sentinel ecosystem! 🚀 I'm here to keep you updated with the spiciest market intelligence. Ask me for prices with /p <coin> or just chat with me!";
+        const welcomeMsg = "Welcome! I'm your Crypto News Educator. 📚 My goal is to help you understand complex market moves and blockchain news in simple terms. Ask me for prices with /p <coin> or just chat with me!";
         ctx.reply(welcomeMsg);
     });
 
