@@ -27,9 +27,18 @@ const setupCommands = (bot) => {
         await ctx.sendChatAction('typing');
         const news = await getLatestNews();
         if (news) {
-            const raw = `Latest News: "${news.title}" (Source: ${news.domain})`;
+            let sentimentStr = '';
+            if (news.votes) {
+                const { positive, negative, important } = news.votes;
+                if (positive > 0 || negative > 0 || important > 0) {
+                    sentimentStr = ` (Sentiment: +${positive || 0}/-${negative || 0}, Importance: ${important || 0})`;
+                }
+            }
+            const raw = `Latest News: "${news.title}" (Source: ${news.domain})${sentimentStr}. Panic Score: ${news.panic_score || 'N/A'}`;
             const flavored = await rewriteInBrandVoice(raw);
-            ctx.reply(`${flavored}\n\n🔗 [Read full article](${news.url})`, {
+            ctx.reply(`${flavored}
+
+🔗 [Read full article](${news.url})`, {
                 parse_mode: 'Markdown',
                 disable_web_page_preview: false,
                 reply_to_message_id: ctx.message.message_id

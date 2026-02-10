@@ -7,13 +7,13 @@ async function getLatestNews() {
             console.error('CRYPTOPANIC_API_KEY is missing');
             return null;
         }
-        const res = await axios.get(`https://cryptopanic.com/api/v1/posts/?auth_token=${token}&public=true&kind=news`);
+        const res = await axios.get(`https://cryptopanic.com/api/developer/v2/posts/?auth_token=${token}&public=true&kind=news`);
         const latest = res.data.results[0];
         if (!latest) return null;
         return {
             title: latest.title,
             url: latest.url,
-            domain: latest.domain
+            domain: latest.domain, panic_score: latest.panic_score || 0, votes: latest.votes || {}
         };
     } catch (error) {
         console.error('Error fetching news:', error.message);
