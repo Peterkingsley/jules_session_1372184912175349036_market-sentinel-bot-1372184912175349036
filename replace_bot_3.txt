@@ -1,0 +1,5 @@
+    } catch (error) {
+        console.error('Greeting Error:', error.message);
+        // Fallback message if AI or Telegram API fails
+        ctx.reply("welcome to the inner circle! I'm here to help you understand the market. 📚").catch(() => {});
+    }

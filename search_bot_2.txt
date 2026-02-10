@@ -1,0 +1,8 @@
+        const prompt = `
+            [Vibe: ${randomVibe}]
+            Task: Greet these new members: ${humanNames}.
+            Context: They just joined the crypto community. ${contextData}
+            Style: Friendly, clear, and educational. Explain the market data simply if it's there.
+            Requirement: One single concise message. Ensure you mention each member by their provided handle or name to tag them.
+            Instruction: Always lead with a friendly greeting and welcome the new members. Your goal is to make them feel informed and welcome without using hype or jargon.
+        `;

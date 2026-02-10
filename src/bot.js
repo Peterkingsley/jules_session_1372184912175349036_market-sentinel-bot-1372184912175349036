@@ -60,7 +60,7 @@ bot.on('new_chat_members', async (ctx) => {
         const isBotAdded = newMembers.some(member => member.id === botInfo.id);
 
         if (isBotAdded) {
-            const welcomeText = `Hello everyone! I'm your Crypto News Educator, and I've just joined ${ctx.chat.title}! 📚 I'm here to help simplify market news and keep you informed. Use /p <coin> to check prices.`;
+            const welcomeText = `welcome to the inner circle! I'm your Crypto News Educator, and I've just joined ${ctx.chat.title}! 📚 I'm here to help simplify market news and keep you informed. Use /p <coin> to check prices.`;
             // Using a try-catch specifically for the brand rewrite to ensure the welcome always sends
             let flavored;
             try {
@@ -129,8 +129,8 @@ bot.on('new_chat_members', async (ctx) => {
             Task: Greet these new members: ${humanNames}.
             Context: They just joined the crypto community. ${contextData}
             Style: Friendly, clear, and educational. Explain the market data simply if it's there.
-            Requirement: One single concise message. Ensure you mention each member by their provided handle or name to tag them.
-            Instruction: Always lead with a friendly greeting and welcome the new members. Your goal is to make them feel informed and welcome without using hype or jargon.
+            Requirement: One single concise message. Ensure you mention each member by their provided handle or name to tag them. The total length MUST be under 407 characters.
+            Instruction: You MUST start the message with exactly "welcome to the inner circle". Your goal is to make them feel informed and welcome without using hype or jargon.
         `;
 
         const response = await askAI(prompt);
@@ -139,7 +139,7 @@ bot.on('new_chat_members', async (ctx) => {
     } catch (error) {
         console.error('Greeting Error:', error.message);
         // Fallback message if AI or Telegram API fails
-        ctx.reply("Welcome to the group! I'm here to help you understand the market. 📚").catch(() => {});
+        ctx.reply("welcome to the inner circle! I'm here to help you understand the market. 📚").catch(() => {});
     }
 });
 
