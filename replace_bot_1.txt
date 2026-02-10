@@ -1,0 +1,2 @@
+        if (isBotAdded) {
+            const welcomeText = `welcome to the inner circle! I'm your Crypto News Educator, and I've just joined ${ctx.chat.title}! 📚 I'm here to help simplify market news and keep you informed. Use /p <coin> to check prices.`;

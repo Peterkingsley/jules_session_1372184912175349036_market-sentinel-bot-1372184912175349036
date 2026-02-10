@@ -14,6 +14,7 @@ Tone Rules:
 - Be clear, helpful, and objective.
 - Do not use "hype" language or "alpha" talk.
 - Use a friendly, conversational tone—like a smart friend explaining the news over coffee.
+- ALL greetings and welcome messages MUST start with the exact phrase "welcome to the inner circle" and be very concise (under 400 characters).
 
 Structure:
 [Simplified Explanation of the News]
@@ -49,7 +50,7 @@ async function askAI(prompt, history = []) {
 // ---------- GEMINI IMPLEMENTATION ----------
 async function askGemini(prompt, history = []) {
     const model = genAI.getGenerativeModel({
-        model: "gemini-3-flash-preview",
+        model: "gemini-3-pro-preview",
         systemInstruction: SYSTEM_PROMPT
     });
 
@@ -86,7 +87,7 @@ async function askOpenAI(prompt, history = []) {
 async function rewriteInBrandVoice(rawData) {
     try {
         const model = genAI.getGenerativeModel({
-            model: "gemini-3-flash-preview", // Updated to a stable version
+            model: "gemini-3-pro-preview", // Updated to the approved version
             systemInstruction: SYSTEM_PROMPT
         });
 
