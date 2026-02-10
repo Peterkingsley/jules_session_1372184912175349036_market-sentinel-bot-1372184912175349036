@@ -43,11 +43,11 @@ async function getOptimizedMarketSnippet() {
 setupCommands(bot);
 
 const vibes = [
-    "hyper-energetic trader",
-    "chill floor manager",
-    "mysterious alpha hunter",
-    "straight-to-the-point analyst",
-    "slightly chaotic moon-boy"
+    "patient educator",
+    "objective analyst",
+    "helpful community guide",
+    "clear translator",
+    "knowledgeable mentor"
 ];
 
 // 2. Robust Group Join / New Member Handler
@@ -60,7 +60,7 @@ bot.on('new_chat_members', async (ctx) => {
         const isBotAdded = newMembers.some(member => member.id === botInfo.id);
 
         if (isBotAdded) {
-            const welcomeText = `Greetings! Sentinel has arrived in ${ctx.chat.title}! 🚀 I'm here to monitor the charts and feed you the spiciest alpha. Use /p <coin> to check prices.`;
+            const welcomeText = `Hello everyone! I'm your Crypto News Educator, and I've just joined ${ctx.chat.title}! 📚 I'm here to help simplify market news and keep you informed. Use /p <coin> to check prices.`;
             // Using a try-catch specifically for the brand rewrite to ensure the welcome always sends
             let flavored;
             try {
@@ -128,9 +128,9 @@ bot.on('new_chat_members', async (ctx) => {
             [Vibe: ${randomVibe}]
             Task: Greet these new members: ${humanNames}.
             Context: They just joined the crypto community. ${contextData}
-            Style: High energy, trader slang, welcoming but professional.
+            Style: Friendly, clear, and educational. Explain the market data simply if it's there.
             Requirement: One single concise message. Ensure you mention each member by their provided handle or name to tag them.
-            Instruction: Always lead with a friendly greeting and welcome the new members. Be creative with how you integrate the market data, but the greeting must come first.
+            Instruction: Always lead with a friendly greeting and welcome the new members. Your goal is to make them feel informed and welcome without using hype or jargon.
         `;
 
         const response = await askAI(prompt);
@@ -139,7 +139,7 @@ bot.on('new_chat_members', async (ctx) => {
     } catch (error) {
         console.error('Greeting Error:', error.message);
         // Fallback message if AI or Telegram API fails
-        ctx.reply("Welcome to the group! Get ready for some market alpha. 🚀").catch(() => {});
+        ctx.reply("Welcome to the group! I'm here to help you understand the market. 📚").catch(() => {});
     }
 });
 
