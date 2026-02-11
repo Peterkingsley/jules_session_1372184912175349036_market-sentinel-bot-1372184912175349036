@@ -49,10 +49,7 @@ const setupCommands = (bot) => {
     });
 
     bot.command('setbroadcast', (ctx) => {
-        const chatId = ctx.chat.id;
-        ctx.reply(`Broadcast chat set to this group! (ID: ${chatId})\nI'll send market reports here on Mondays, Tuesdays, and Wednesdays.`);
-        // In a real app, you'd save this to a database or .env file
-        process.env.MAIN_CHAT_ID = chatId;
+        ctx.reply(`This group is now registered for automated alerts and reports! 🚀\nI broadcast market intelligence to all active communities I'm part of.`);
     });
 
     bot.command('testai', async (ctx) => {
