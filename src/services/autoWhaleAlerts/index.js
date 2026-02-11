@@ -1,6 +1,6 @@
 const { parseSwapEvent, getParamValue } = require('./parser');
 const { isWhaleTrade } = require('./detector');
-const { TELEGRAM_CHAT_ID } = require('./config');
+const { broadcast } = require('../../utils');
 
 async function handleMoralisWebhook(bot, data) {
     if (!data.logs || data.logs.length === 0) return;
@@ -82,12 +82,10 @@ async function sendWhaleAlert(bot, trade, chain) {
 *TX:* [View on Explorer](${txLink})
 *Time:* Just now`;
 
-    if (TELEGRAM_CHAT_ID) {
-        await bot.telegram.sendMessage(TELEGRAM_CHAT_ID, message, {
-            parse_mode: 'Markdown',
-            disable_web_page_preview: true
-        });
-    }
+    await broadcast(bot, message, {
+        parse_mode: 'Markdown',
+        disable_web_page_preview: true
+    });
 }
 
 module.exports = { handleMoralisWebhook };

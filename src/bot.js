@@ -1,3 +1,4 @@
+const { addChat, removeChat } = require('./storage');
 const http = require('http');
 require('dotenv').config();
 const { Telegraf } = require('telegraf');
@@ -15,6 +16,24 @@ if (!process.env.BOT_TOKEN) {
 }
 
 const bot = new Telegraf(process.env.BOT_TOKEN);
+
+// 0. Middleware to track all active chats
+bot.use(async (ctx, next) => {
+    if (ctx.chat && (ctx.chat.type === 'group' || ctx.chat.type === 'supergroup' || ctx.chat.type === 'channel')) {
+        addChat(ctx.chat.id);
+    }
+    return next();
+});
+
+// Track when the bot is added or removed from a chat
+bot.on('my_chat_member', (ctx) => {
+    const status = ctx.myChatMember.new_chat_member.status;
+    if (status === 'member' || status === 'administrator') {
+        addChat(ctx.chat.id);
+    } else if (status === 'kicked' || status === 'left') {
+        removeChat(ctx.chat.id);
+    }
+});
 
 // To prevent 429 errors and speed up greetings, we cache market snippets
 let cachedMarketSnippet = null;

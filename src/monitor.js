@@ -1,6 +1,7 @@
 const axios = require('axios');
 const { getMarketMovers } = require('./crypto');
 const { rewriteInBrandVoice } = require('./ai');
+const { broadcast } = require('./utils');
 
 let lastMovers = [];
 let knownCoins = new Set();
@@ -19,9 +20,6 @@ async function startMonitoring(bot) {
 
     // Check every 10 minutes
     setInterval(async () => {
-        const chatId = process.env.MAIN_CHAT_ID;
-        if (!chatId) return;
-
         const movers = await getMarketMovers();
         if (!movers || movers.length === 0) return;
 
@@ -31,13 +29,8 @@ async function startMonitoring(bot) {
         for (const coin of highVolatility) {
             const rawData = `VOLATILITY ALERT: ${coin.name} (${coin.symbol}) is moving fast! ${coin.change1h > 0 ? '🚀 UP' : '📉 DOWN'} ${coin.change1h.toFixed(2)}% in the last hour. Price: $${coin.price}`;
             const flavored = await rewriteInBrandVoice(rawData);
-            bot.telegram.sendMessage(chatId, flavored);
+            broadcast(bot, flavored);
         }
-
-        // Volume Analysis: Could compare with lastMovers to see if volume jumped significantly
-        // For simplicity, let's just alert on massive absolute volume for mid-caps if we wanted,
-        // but the user wants "identifies tokens gaining massive trading volume before the price peak".
-        // This usually requires historical data.
 
         lastMovers = movers;
 
@@ -51,7 +44,7 @@ async function startMonitoring(bot) {
                 for (const coin of newCoins) {
                     const rawData = `NEW LISTING ALERT: ${coin.name} (${coin.symbol.toUpperCase()}) just appeared on CoinGecko! 🚀`;
                     const flavored = await rewriteInBrandVoice(rawData);
-                    bot.telegram.sendMessage(chatId, flavored);
+                    broadcast(bot, flavored);
                     knownCoins.add(coin.id);
                 }
             } else if (newCoins.length >= 50) {
