@@ -7,6 +7,7 @@ const { initScheduler } = require('./scheduler');
 const { getPrice, getTrendingCoins, getRandomMarketData } = require('./crypto');
 const { startMonitoring } = require('./monitor');
 const { getLatestNews } = require('./news');
+const { handleMoralisWebhook } = require('./services/autoWhaleAlerts');
 
 if (!process.env.BOT_TOKEN) {
     console.error('BOT_TOKEN is missing in .env file');
@@ -162,6 +163,24 @@ const server = http.createServer((req, res) => {
                 bot.handleUpdate(update, res);
             } catch (err) {
                 console.error('Webhook processing error:', err);
+                res.statusCode = 500;
+                res.end();
+            }
+        });
+        return;
+    }
+
+    if (req.method === 'POST' && req.url === '/moralis-webhook') {
+        let body = '';
+        req.on('data', chunk => { body += chunk.toString(); });
+        req.on('end', async () => {
+            try {
+                const data = JSON.parse(body);
+                await handleMoralisWebhook(bot, data);
+                res.statusCode = 200;
+                res.end('OK');
+            } catch (err) {
+                console.error('Moralis Webhook processing error:', err);
                 res.statusCode = 500;
                 res.end();
             }
