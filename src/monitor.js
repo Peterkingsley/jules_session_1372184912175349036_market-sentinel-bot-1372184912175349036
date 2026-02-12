@@ -24,7 +24,7 @@ async function startMonitoring(bot) {
         if (!movers || movers.length === 0) return;
 
         // Volatility Tracking: Detect sudden 1h spikes (> 5%)
-        const highVolatility = movers.filter(m => Math.abs(m.change1h) > 5);
+        const highVolatility = movers.filter(m => Math.abs(m.change1h) > 200);
 
         for (const coin of highVolatility) {
             const rawData = `VOLATILITY ALERT: ${coin.name} (${coin.symbol}) is moving fast! ${coin.change1h > 0 ? '🚀 UP' : '📉 DOWN'} ${coin.change1h.toFixed(2)}% in the last hour. Price: $${coin.price}`;
