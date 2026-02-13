@@ -1,6 +1,10 @@
-const { getChats, removeChat } = require('./storage');
+const { getChats, removeChat, isPaused } = require('./storage');
 
 async function broadcast(bot, message, extra = {}) {
+    if (isPaused()) {
+        console.log('Broadcast skipped: News posts are paused.');
+        return [];
+    }
     const chats = getChats();
     console.log(`Broadcasting to ${chats.length} chats...`);
 

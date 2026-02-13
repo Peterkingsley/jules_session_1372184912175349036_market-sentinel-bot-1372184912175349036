@@ -1,4 +1,4 @@
-const { addChat, removeChat } = require('./storage');
+const { addChat, removeChat, isPaused } = require('./storage');
 const http = require('http');
 require('dotenv').config();
 const { Telegraf } = require('telegraf');
@@ -104,7 +104,9 @@ bot.on('new_chat_members', async (ctx) => {
 
         // Selection is fully random across the three sources
         const sources = ['price', 'news', 'trending'];
-        const selectedSource = sources[Math.floor(Math.random() * sources.length)];
+        // If news is paused, filter out news from greetings source to respect user request
+        const activeSources = isPaused() ? sources.filter(s => s !== 'news') : sources;
+        const selectedSource = activeSources[Math.floor(Math.random() * activeSources.length)];
         let contextData = '';
 
         try {

@@ -1,6 +1,7 @@
 const { getLatestNews } = require('./news');
 const { getPrice } = require('./crypto');
 const { rewriteInBrandVoice } = require('./ai');
+const { isPaused, setPaused } = require('./storage');
 
 const setupCommands = (bot) => {
     bot.start((ctx) => {
@@ -24,6 +25,10 @@ const setupCommands = (bot) => {
     });
 
     bot.command('news', async (ctx) => {
+        if (isPaused() && ctx.chat.type !== 'private') {
+            return ctx.reply("News posts are currently paused in groups. ⏸️");
+        }
+
         await ctx.sendChatAction('typing');
         const news = await getLatestNews();
         if (news) {
@@ -50,6 +55,40 @@ const setupCommands = (bot) => {
 
     bot.command('setbroadcast', (ctx) => {
         ctx.reply(`This group is now registered for automated alerts and reports! 🚀\nI broadcast market intelligence to all active communities I'm part of.`);
+    });
+
+    bot.command('pausenews', async (ctx) => {
+        if (ctx.chat.type !== 'private') {
+            try {
+                const admins = await ctx.getChatAdministrators();
+                const isAdmin = admins.some(a => a.user.id === ctx.from.id);
+                if (!isAdmin) return ctx.reply("Only admins can pause news posts.");
+            } catch (err) {
+                console.error('Error checking admin status:', err.message);
+                // If we can't check admins, we might be in a channel or something went wrong.
+                // For safety, only allow if private or if we can verify admin.
+                if (ctx.chat.type !== 'channel') return ctx.reply("I couldn't verify your admin status.");
+            }
+        }
+
+        setPaused(true);
+        ctx.reply("Automated news posts and market reports have been paused. ⏸️");
+    });
+
+    bot.command('resumenews', async (ctx) => {
+        if (ctx.chat.type !== 'private') {
+            try {
+                const admins = await ctx.getChatAdministrators();
+                const isAdmin = admins.some(a => a.user.id === ctx.from.id);
+                if (!isAdmin) return ctx.reply("Only admins can resume news posts.");
+            } catch (err) {
+                console.error('Error checking admin status:', err.message);
+                if (ctx.chat.type !== 'channel') return ctx.reply("I couldn't verify your admin status.");
+            }
+        }
+
+        setPaused(false);
+        ctx.reply("Automated news posts and market reports have been resumed. ▶️");
     });
 
     bot.command('testai', async (ctx) => {
